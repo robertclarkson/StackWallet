@@ -4,7 +4,8 @@ import {
   loadUserData,
   Person,
   getFile,
-  putFile
+  putFile,
+  deleteFile
 } from 'blockstack';
 
 let bitcoin = require('bitcoinjs-lib')
@@ -35,6 +36,7 @@ export default class Profile extends Component {
     const { person } = this.state;
     const { username } = this.state;
     const { address } = this.state;
+    const { created_at } = this.state;
     const { wif } = this.state;
     return (
       !isSignInPending() ?
@@ -70,13 +72,25 @@ export default class Profile extends Component {
           </div>
           <div className="bitcoin">
             <div className="col-md-offset-3 col-md-6">
-              <h3>Bitcoin</h3>
-              <table className="table">
-                <tbody>
-                  <tr><th>WIF:</th><td>{wif}</td></tr>
-                  <tr><th>Address:</th><td>{address}</td></tr>
-                </tbody>
-              </table>
+              {this.state.isLoading && <h1>Loading...</h1>}
+              {!this.state.isLoading &&
+                <div className="bitcoin">
+                  <h3>Bitcoin</h3>
+                  <table className="table">
+                    <tbody>
+                      <tr><th>WIF:</th><td>{wif}</td></tr>
+                      <tr><th>Address:</th><td>{address}</td></tr>
+                      <tr><th>Created:</th><td>{created_at}</td></tr>
+                    </tbody>
+                  </table>
+                  <button 
+                    className="btn btn-danger" 
+                    onClick={e => this.handleDelete(e)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              }
             </div>
           </div>
         </div>
@@ -90,47 +104,63 @@ export default class Profile extends Component {
       .then((file) => {
         if(file != null) {
           //we got a btc file from the user, get the WIF and make address
-          var btc = JSON.parse(file || '[]')
           console.log('setting state');
-          var keyPair = bitcoin.ECPair.fromWIF(btc.wif)
-          var address = keyPair.getAddress()
+          console.log(file);
+          var btc = JSON.parse(file || '[]')
+          if(btc.wif){
+            var keyPair = bitcoin.ECPair.fromWIF(btc.wif)
+            var address = keyPair.getAddress()
 
-          this.setState({
-            wif:btc.wif,
-            address:address
-          })
+            this.setState({
+              wif:btc.wif,
+              address:address,
+              created_at:new Date(btc.created_at).toString()
+            })
+          }
+          else {
+            this.makeBitcoinFile()
+          }
         }
         else {
-          console.log('no bitcoin saved file, creating new one')
-          var keyPair = bitcoin.ECPair.makeRandom();
-          var wif = keyPair.toWIF();
-          var address = keyPair.getAddress()
-          let btc = {
-            wif: wif,
-            created_at: Date.now()
-          }
-          putFile('btc.json', JSON.stringify(btc))
-            .then(() => {
-              this.setState({
-                wif:wif,
-                address:address
-              })
-            })
-
-          
+          this.makeBitcoinFile();
         }
-        console.log(wif);
-        console.log(address);
+        // console.log(wif);
+        // console.log(address);
       })
-      .catch(() => {
+      .catch((e) => {
+        console.log(e);
           console.log('Error getting bitcoin private key')
       })
       .finally(() => {
         this.setState({isLoading:false})
       })
+  }
 
-    this.setState({isLoading:false})
+  makeBitcoinFile() {
+    console.log('no bitcoin saved file, creating new one')
+    var keyPair = bitcoin.ECPair.makeRandom();
+    var wif = keyPair.toWIF();
+    var address = keyPair.getAddress()
+    let btc = {
+      wif: wif,
+      created_at: Date.now()
+    }
+    putFile('btc.json', JSON.stringify(btc))
+      .then(() => {
+        this.setState({
+          wif:wif,
+          address:address,
+          created_at:new Date(btc.created_at).toString()
+        })
+      })
+  }
 
+  handleDelete() {
+    putFile('btc.json', JSON.stringify([]))
+      .finally(() => {
+        this.setState({isLoading:false})
+        this.fetchData();
+      })
   }
 
   componentDidMount() {
