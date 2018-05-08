@@ -108,7 +108,7 @@ export default class Profile extends Component {
           console.log(file);
           var btc = JSON.parse(file || '[]')
           if(btc.wif){
-            var keyPair = bitcoin.ECPair.fromWIF(btc.wif)
+            var keyPair = bitcoin.ECPair.fromWIF(btc.wif, bitcoin.networks.testnet)
             var address = keyPair.getAddress()
 
             this.setState({
@@ -138,7 +138,8 @@ export default class Profile extends Component {
 
   makeBitcoinFile() {
     console.log('no bitcoin saved file, creating new one')
-    var keyPair = bitcoin.ECPair.makeRandom();
+    var testnet = bitcoin.networks.testnet
+    var keyPair = bitcoin.ECPair.makeRandom({ network: testnet});
     var wif = keyPair.toWIF();
     var address = keyPair.getAddress()
     let btc = {

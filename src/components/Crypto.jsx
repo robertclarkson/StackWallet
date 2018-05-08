@@ -14,6 +14,7 @@ export default class Crypto extends Component {
   render() {
     const { code } = this.state;
     const { wif } = this.state;
+    const { name } = this.name;
 
     return (
       <div className="panel-landing" id={code}>
