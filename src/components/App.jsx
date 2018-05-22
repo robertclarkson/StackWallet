@@ -1,6 +1,11 @@
 import React, { Component, Link } from 'react';
 import Profile from './Profile.jsx';
 import Signin from './Signin.jsx';
+import Footer from './Footer'
+import AddTodo from '../containers/AddTodo'
+import VisibleTodoList from '../containers/VisibleTodoList'
+import FooterContainer from '../containers/FooterContainer'
+
 import {
   isSignInPending,
   isUserSignedIn,
@@ -31,7 +36,14 @@ export default class App extends Component {
         <div className="site-wrapper-inner">
           { !isUserSignedIn() ?
             <Signin handleSignIn={ this.handleSignIn } />
-            : <Profile handleSignOut={ this.handleSignOut } />
+            : <div>
+                <Profile handleSignOut={ this.handleSignOut } />
+                <div className="col-md-offset-3 col-md-6">
+                  <AddTodo />
+                  <VisibleTodoList />
+                  <FooterContainer />
+                </div>
+              </div>
           }
         </div>
       </div>

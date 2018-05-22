@@ -28,6 +28,10 @@ export default class Profile extends Component {
       username: "",
       wif:"",
       address:"",
+      cryptos: [
+        {name:'bitcoin'},
+        {name:'ethereum'}
+      ]
   	};
   }
 
@@ -88,6 +92,13 @@ export default class Profile extends Component {
                     onClick={e => this.handleDelete(e)}
                   >
                     Delete
+                  </button>
+
+                  <button 
+                    className="btn btn-info" 
+                    onClick={e => this.handleAdd(e)}
+                  >
+                    Add Crypto
                   </button>
                 </div>
               }
@@ -162,6 +173,12 @@ export default class Profile extends Component {
         this.setState({isLoading:false})
         this.fetchData();
       })
+  }
+
+  handleAdd() {
+    this.setState({
+
+    });
   }
 
   componentDidMount() {
