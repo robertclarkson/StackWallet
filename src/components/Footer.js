@@ -3,7 +3,6 @@ import FilterLink from '../containers/FilterLink'
 import { VisibilityFilters } from '../actions'
 
 const Footer = (state) => (
-
   <div>
     <span>Show: ({state.active}) </span>
     <FilterLink filter={VisibilityFilters.SHOW_ALL}>

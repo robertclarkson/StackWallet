@@ -9,6 +9,8 @@ import {
 } from 'blockstack';
 
 let bitcoin = require('bitcoinjs-lib')
+var bip39 = require('bip39')
+var bip32 = require('bip32')
 
 const avatarFallbackImage = 'https://s3.amazonaws.com/onename/avatar-placeholder.png';
 
@@ -26,12 +28,8 @@ export default class Profile extends Component {
   	  	},
   	  },
       username: "",
-      wif:"",
-      address:"",
-      cryptos: [
-        {name:'bitcoin'},
-        {name:'ethereum'}
-      ]
+      mnemonic:"",
+      address:""
   	};
   }
 
@@ -41,7 +39,7 @@ export default class Profile extends Component {
     const { username } = this.state;
     const { address } = this.state;
     const { created_at } = this.state;
-    const { wif } = this.state;
+    const { mnemonic } = this.state;
     return (
       !isSignInPending() ?
       <div className="container">
@@ -82,7 +80,7 @@ export default class Profile extends Component {
                   <h3>Bitcoin</h3>
                   <table className="table">
                     <tbody>
-                      <tr><th>WIF:</th><td>{wif}</td></tr>
+                      <tr><th>Mnemonic:</th><td>{mnemonic}</td></tr>
                       <tr><th>Address:</th><td>{address}</td></tr>
                       <tr><th>Created:</th><td>{created_at}</td></tr>
                     </tbody>
@@ -109,8 +107,29 @@ export default class Profile extends Component {
     );
   }
 
+  getAddress (node) {
+    var baddress = bitcoin.address
+    var bcrypto = bitcoin.crypto
+    return baddress.toBase58Check(bcrypto.hash160(node.publicKey), bitcoin.networks.bitcoin.pubKeyHash)
+  }
+
   fetchData(){
     this.setState({isLoading:true})
+
+    const constants = require('bip44-constants')
+    console.log(constants)
+     
+    // // iterate through constants
+    // Object.keys(constants).forEach(coin => {
+    //   const constant = constants[coin]
+     
+    //   // ...
+    //   console.log(coin, constant)
+    // })
+     
+    // console.log(constants['Litecoin'])
+
+
     getFile('btc.json')
       .then((file) => {
         if(file != null) {
@@ -118,12 +137,17 @@ export default class Profile extends Component {
           console.log('setting state');
           console.log(file);
           var btc = JSON.parse(file || '[]')
-          if(btc.wif){
-            var keyPair = bitcoin.ECPair.fromWIF(btc.wif, bitcoin.networks.testnet)
-            var address = keyPair.getAddress()
+          if(btc.mnemonic){
+            // var keyPair = bitcoin.ECPair.fromWIF(btc.wif, bitcoin.networks.testnet)
+            // var address = keyPair.getAddress()
 
+            // var mnemonic = bip39.generateMnemonic()
+            var mnemonic = btc.mnemonic
+            var seed = bip39.mnemonicToSeed(mnemonic)
+            var rootkey = bip32.fromSeed(seed)
+            var address = this.getAddress(rootkey.derivePath("m/0'/0/0"))
             this.setState({
-              wif:btc.wif,
+              mnemonic:btc.mnemonic,
               address:address,
               created_at:new Date(btc.created_at).toString()
             })
@@ -149,18 +173,23 @@ export default class Profile extends Component {
 
   makeBitcoinFile() {
     console.log('no bitcoin saved file, creating new one')
-    var testnet = bitcoin.networks.testnet
-    var keyPair = bitcoin.ECPair.makeRandom({ network: testnet});
-    var wif = keyPair.toWIF();
-    var address = keyPair.getAddress()
+    // var testnet = bitcoin.networks.testnet
+    // var keyPair = bitcoin.ECPair.makeRandom({ network: testnet});
+    // var wif = keyPair.toWIF();
+    // var address = keyPair.getAddress()
+
+    var mnemonic = bip39.generateMnemonic()
+    var seed = bip39.mnemonicToSeed(mnemonic)
+    var rootkey = bip32.fromSeed(seed)
+    var address = this.getAddress(rootkey.derivePath("m/0'/0/0"))
     let btc = {
-      wif: wif,
+      mnemonic: mnemonic,
       created_at: Date.now()
     }
     putFile('btc.json', JSON.stringify(btc))
       .then(() => {
         this.setState({
-          wif:wif,
+          mnemonic:mnemonic,
           address:address,
           created_at:new Date(btc.created_at).toString()
         })
