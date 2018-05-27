@@ -39,7 +39,7 @@ export default class Bitcoin extends Component {
   }
 
   render() {
-    const { mnemonic, address, created_at } = this.state;
+    const { mnemonic, address, txs, created_at } = this.state;
     
     return (
       <div className="container">
@@ -53,6 +53,7 @@ export default class Bitcoin extends Component {
                   <tbody>
                     <tr><th>Mnemonic:</th><td>{mnemonic}</td></tr>
                     <tr><th>Address:</th><td>{address}</td></tr>
+                    <tr><th>Balance:</th><td>{txs ? txs.balance : 'loading...'}</td></tr>
                     <tr><th>Created:</th><td>{created_at}</td></tr>
                   </tbody>
                 </table>
@@ -81,7 +82,7 @@ export default class Bitcoin extends Component {
     )
   }
 
-  getTransactions(address) {
+  getTransactions(address, component) {
     dhttp({
       method: 'GET',
       // url: 'https://test-insight.bitpay.com/api/addr/'+address,
@@ -92,7 +93,9 @@ export default class Bitcoin extends Component {
       }*/
     }, function (err, transactions) {
       if (err) console.log(err)
-
+        component.setState({
+          txs: transactions,
+        });
       console.log(transactions)
     })
   }
@@ -108,8 +111,8 @@ export default class Bitcoin extends Component {
             var seed = bip39.mnemonicToSeed(mnemonic)
             var rootkey = bip32.fromSeed(seed)
             var address = this.getAddress(rootkey.derivePath("m/44'/1'/0'/0/0"))
-            var txs = this.getTransactions(address)
-            console.log(txs)
+            var txs = this.getTransactions(address, this)
+
             this.setState({
               mnemonic:btc.mnemonic,
               address:address,
@@ -141,13 +144,13 @@ export default class Bitcoin extends Component {
     // var address = keyPair.getAddress()
 
     var mnemonic = bip39.generateMnemonic()
-    var seed = bip39.mnemonicToSeed(mnemonic)
-    var rootkey = bip32.fromSeed(seed)
-    var address = this.getAddress(rootkey.derivePath("m/44'/1'/0'/0/0"))
-    var addresses = [
-      this.getAddress(rootkey.derivePath("m/44'/0'/0'/0/0")),
-      this.getAddress(rootkey.derivePath("m/44'/1'/0'/0/0"))
-    ]
+    // var seed = bip39.mnemonicToSeed(mnemonic)
+    // var rootkey = bip32.fromSeed(seed)
+    // var address = this.getAddress(rootkey.derivePath("m/44'/1'/0'/0/0"))
+    // var addresses = [
+    //   this.getAddress(rootkey.derivePath("m/44'/0'/0'/0/0")),
+    //   this.getAddress(rootkey.derivePath("m/44'/1'/0'/0/0"))
+    // ]
     
     let btc = {
       mnemonic: mnemonic,
@@ -155,11 +158,11 @@ export default class Bitcoin extends Component {
     }
     putFile('btc.json', JSON.stringify(btc))
       .then(() => {
-        this.setState({
-          mnemonic:mnemonic,
-          address:address,
-          created_at:new Date(btc.created_at).toString()
-        })
+        // this.setState({
+        //   mnemonic:mnemonic,
+        //   address:address,
+        //   created_at:new Date(btc.created_at).toString()
+        // })
       })
   }
 

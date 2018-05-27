@@ -48,7 +48,6 @@ export default class Settings extends Component {
                 <table className="table">
                   <tbody>
                     <tr><th>Mnemonic:</th><td>{mnemonic}</td></tr>
-                    <tr><th>Address:</th><td>{address}</td></tr>
                     <tr><th>Created:</th><td>{created_at}</td></tr>
                   </tbody>
                 </table>
@@ -75,7 +74,67 @@ export default class Settings extends Component {
     ) 
   }
 
-  
+  fetchData(){
+    this.setState({isLoading:true})
+    getFile('btc.json')
+      .then((file) => {
+        if(file != null) {
+          var btc = JSON.parse(file || '[]')
+          if(btc.mnemonic){
+            var mnemonic = btc.mnemonic
+            this.setState({
+              mnemonic:btc.mnemonic,
+              created_at:new Date(btc.created_at).toString()
+            })
+          }
+          else {
+            this.makeBitcoinFile()
+          }
+        }
+        else {
+          this.makeBitcoinFile();
+        }
+      })
+      .catch((e) => {
+        console.log('Bitcoin: Error getting bitcoin private key')
+        console.log(e);
+      })
+      .finally(() => {
+        this.setState({isLoading:false})
+      })
+    
+  }
+
+  makeBitcoinFile() {
+    console.log('no bitcoin saved file, creating new one')
+    // var testnet = bitcoin.networks.testnet
+    // var keyPair = bitcoin.ECPair.makeRandom({ network: testnet});
+    // var wif = keyPair.toWIF();
+    // var address = keyPair.getAddress()
+
+    var mnemonic = bip39.generateMnemonic()
+    // var seed = bip39.mnemonicToSeed(mnemonic)
+    // var rootkey = bip32.fromSeed(seed)
+    // var address = this.getAddress(rootkey.derivePath("m/44'/1'/0'/0/0"))
+    // var addresses = [
+    //   this.getAddress(rootkey.derivePath("m/44'/0'/0'/0/0")),
+    //   this.getAddress(rootkey.derivePath("m/44'/1'/0'/0/0"))
+    // ]
+    
+    let btc = {
+      mnemonic: mnemonic,
+      created_at: Date.now()
+    }
+    putFile('btc.json', JSON.stringify(btc))
+      .then(() => {
+        // this.setState({
+        //   mnemonic:mnemonic,
+        //   address:address,
+        //   created_at:new Date(btc.created_at).toString()
+        // })
+      })
+  }
+
   handleDelete() {
     putFile('btc.json', JSON.stringify([]))
       .finally(() => {
@@ -84,5 +143,8 @@ export default class Settings extends Component {
       })
   }
 
+  componentDidMount() {
+    this.fetchData();
+  }
 
 }
