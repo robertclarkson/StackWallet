@@ -40,7 +40,7 @@
     "bip44-constants": "^5.0.0",
     "bitcoinjs-lib": "^3.3.2",
     "blockstack": "^0.15.0",
-    "bootstrap": "^3.3.7",
+    "bootstrap": "^4.0",
     "prop-types": "^15.6.1",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",

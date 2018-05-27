@@ -10,7 +10,7 @@ import Bitcoin from './components/Bitcoin.jsx';
 // Require Sass file so webpack can build it
 import bootstrap from 'bootstrap/dist/css/bootstrap.css';
 import style from './styles/style.css';
-import { BrowserRouter, Router, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Router, Route, Link, Switch } from 'react-router-dom';
 
 
 import createBlockstackStore from "redux-persist-blockstack";
@@ -51,26 +51,40 @@ if (isSignInPending()) {
   });
 }
 ReactDOM.render(
-	<BrowserRouter>
-		<Provider store={store}>
-			{ !isUserSignedIn() ?
-            <Signin handleSignIn={ handleSignIn } />
-            : 
-				<PersistGate loading={<div>Loading...</div>} persistor={persistor}>
+	<Provider store={store}>
+		{ !isUserSignedIn() ?
+        <Signin handleSignIn={ handleSignIn } />
+        : 
+			<PersistGate loading={<div>Loading...</div>} persistor={persistor}>
+				<BrowserRouter>
 					<div>
-						<nav>
-					      <Link to="/">Home</Link>
-					      <Link to="/bitcoin">Bitcoin</Link>
+						<nav className="navbar navbar-expand-lg navbar-dark bg-primary">
+							<Link className="navbar-brand" to="/">Simple Wallet</Link>
+							<button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+								<span className="navbar-toggler-icon"></span>
+							</button>
+
+							<div className="collapse navbar-collapse" id="navbarSupportedContent">
+								<ul className="navbar-nav mr-auto">
+									<li className="nav-item active">
+										<Link className="nav-link" to="/">Home</Link>
+									</li>
+									<li className="nav-item active">
+										<Link className="nav-link" to="/bitcoin">Bitcoin</Link>
+									</li>
+								</ul>
+							</div>
 					    </nav>
-					    <div>
+					    <switch>
+					      <Route exact path="/" component={App}/>
 					      <Route path="/bitcoin" component={Bitcoin}/>
-					      <Route path="/" component={App}/>
-					    </div>
+					    </switch>
 					</div>
-				</PersistGate>
-			}
-		</Provider>
-	</BrowserRouter>, document.getElementById('root')
+				</BrowserRouter>
+			</PersistGate>
+		}
+	</Provider>
+	, document.getElementById('root')
 );
 
 

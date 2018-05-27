@@ -38,17 +38,20 @@ export default class Bitcoin extends Component {
     
     return (
       <div className="container">
-        <div className="row">
-          <div className="col-md-offset-3 col-md-6">
+        <div className="row justify-content-center">
+          <div className="col-md-6 ">
             <div className="bitcoin">
               <h3>Bitcoin</h3>
-              <table className="table">
-                <tbody>
-                  <tr><th>Mnemonic:</th><td>{mnemonic}</td></tr>
-                  <tr><th>Address:</th><td>{address}</td></tr>
-                  <tr><th>Created:</th><td>{created_at}</td></tr>
-                </tbody>
-              </table>
+              {this.state.isLoading && <h1>Loading...</h1>}
+              {!this.state.isLoading &&
+                <table className="table">
+                  <tbody>
+                    <tr><th>Mnemonic:</th><td>{mnemonic}</td></tr>
+                    <tr><th>Address:</th><td>{address}</td></tr>
+                    <tr><th>Created:</th><td>{created_at}</td></tr>
+                  </tbody>
+                </table>
+              }
             </div>
           </div>
         </div>
@@ -63,7 +66,7 @@ export default class Bitcoin extends Component {
 
     return baddress.toBase58Check(
       bcrypto.hash160(node.publicKey), 
-      bitcoin.networks.testnet.pubKeyHash
+      bitcoin.networks.bitcoin.pubKeyHash
     )
   }
 
@@ -93,6 +96,7 @@ export default class Bitcoin extends Component {
         console.log(e);
       })
       .finally(() => {
+        this.setState({isLoading:false})
       })
   }
 

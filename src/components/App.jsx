@@ -32,20 +32,18 @@ export default class App extends Component {
 
   render() {
     return (
-      <div className="site-wrapper">
-        <div className="site-wrapper-inner">
-          { !isUserSignedIn() ?
-            <Signin handleSignIn={ this.handleSignIn } />
-            : <div>
-                <Profile handleSignOut={ this.handleSignOut } />
-                <div className="col-md-offset-3 col-md-6">
-                  <AddTodo />
-                  <VisibleTodoList />
-                  <FooterContainer />
-                </div>
+      <div class="container">
+        { !isUserSignedIn() ?
+          <Signin handleSignIn={ this.handleSignIn } />
+          : <div>
+              <Profile handleSignOut={ this.handleSignOut } />
+              <div className="col-md-offset-3 col-md-6">
+                <AddTodo />
+                <VisibleTodoList />
+                <FooterContainer />
               </div>
-          }
-        </div>
+            </div>
+        }
       </div>
     );
   }
