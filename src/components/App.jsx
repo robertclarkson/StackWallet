@@ -37,11 +37,11 @@ export default class App extends Component {
           <Signin handleSignIn={ this.handleSignIn } />
           : <div>
               <Profile handleSignOut={ this.handleSignOut } />
-              <div className="col-md-offset-3 col-md-6">
-                <AddTodo />
-                <VisibleTodoList />
-                <FooterContainer />
-              </div>
+              {/*<div className="col-md-offset-3 col-md-6">
+                  <AddTodo />
+                  <VisibleTodoList />
+                  <FooterContainer />
+                </div>*/}
             </div>
         }
       </div>
