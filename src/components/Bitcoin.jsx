@@ -12,6 +12,7 @@ let bitcoin = require('bitcoinjs-lib')
 var bip39 = require('bip39')
 var bip32 = require('bip32')
 const cointypes = require('bip44-constants')
+var dhttp = require('dhttp/200')
 
 export default class Bitcoin extends Component {
 
@@ -33,6 +34,10 @@ export default class Bitcoin extends Component {
     };
   }
 
+  getClassName() {
+    return 'Bitcoin'
+  }
+
   render() {
     const { mnemonic, address, created_at } = this.state;
     
@@ -41,7 +46,7 @@ export default class Bitcoin extends Component {
         <div className="row justify-content-center">
           <div className="col-md-6 ">
             <div className="bitcoin">
-              <h3>Bitcoin</h3>
+              <h3>{this.getClassName()}</h3>
               {this.state.isLoading && <h1>Loading...</h1>}
               {!this.state.isLoading &&
                 <table className="table">
@@ -53,11 +58,17 @@ export default class Bitcoin extends Component {
                 </table>
               }
             </div>
+
+            
           </div>
         </div>
       </div>
 
     ) 
+  }
+
+  getCoinIndex(tla = 'BTC') {
+    return (cointypes[tla] - cointypes['BTC'])
   }
 
   getAddress (node) {
@@ -68,6 +79,22 @@ export default class Bitcoin extends Component {
       bcrypto.hash160(node.publicKey), 
       bitcoin.networks.bitcoin.pubKeyHash
     )
+  }
+
+  getTransactions(address) {
+    dhttp({
+      method: 'GET',
+      // url: 'https://test-insight.bitpay.com/api/addr/'+address,
+      url: 'https://insight.bitpay.com/api/addr/'+address,
+      /*body: {
+        addrs: [address],
+        height: 0
+      }*/
+    }, function (err, transactions) {
+      if (err) console.log(err)
+
+      console.log(transactions)
+    })
   }
 
   fetchData(){
@@ -81,14 +108,20 @@ export default class Bitcoin extends Component {
             var seed = bip39.mnemonicToSeed(mnemonic)
             var rootkey = bip32.fromSeed(seed)
             var address = this.getAddress(rootkey.derivePath("m/44'/1'/0'/0/0"))
-
+            var txs = this.getTransactions(address)
+            console.log(txs)
             this.setState({
               mnemonic:btc.mnemonic,
               address:address,
               created_at:new Date(btc.created_at).toString()
             })
           }
-
+          else {
+            this.makeBitcoinFile()
+          }
+        }
+        else {
+          this.makeBitcoinFile();
         }
       })
       .catch((e) => {
@@ -100,13 +133,48 @@ export default class Bitcoin extends Component {
       })
   }
 
+  makeBitcoinFile() {
+    console.log('no bitcoin saved file, creating new one')
+    // var testnet = bitcoin.networks.testnet
+    // var keyPair = bitcoin.ECPair.makeRandom({ network: testnet});
+    // var wif = keyPair.toWIF();
+    // var address = keyPair.getAddress()
+
+    var mnemonic = bip39.generateMnemonic()
+    var seed = bip39.mnemonicToSeed(mnemonic)
+    var rootkey = bip32.fromSeed(seed)
+    var address = this.getAddress(rootkey.derivePath("m/44'/1'/0'/0/0"))
+    var addresses = [
+      this.getAddress(rootkey.derivePath("m/44'/0'/0'/0/0")),
+      this.getAddress(rootkey.derivePath("m/44'/1'/0'/0/0"))
+    ]
+    
+    let btc = {
+      mnemonic: mnemonic,
+      created_at: Date.now()
+    }
+    putFile('btc.json', JSON.stringify(btc))
+      .then(() => {
+        this.setState({
+          mnemonic:mnemonic,
+          address:address,
+          created_at:new Date(btc.created_at).toString()
+        })
+      })
+  }
+
+  handleAdd() {
+    this.setState({
+
+    });
+  }
+
   componentDidMount() {
     this.fetchData();
   }
 
 
   componentWillMount() {
-    console.log('bitcoin will mount')
     this.setState({
       person: new Person(loadUserData().profile),
       username: loadUserData().username

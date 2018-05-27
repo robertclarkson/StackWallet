@@ -2,6 +2,10 @@
 a,a:focus,a:hover{color:#fff;}
 html,body{height:100%;text-align:left;background-color:#191b22;}
 body{color:#fff}
+.jumbotron,
+.jumbotron * {
+	color:#000;
+} 
 .hide{display:none;}
 .landing-heading{font-family:'Lato',Sans-Serif;font-weight:400;}
 

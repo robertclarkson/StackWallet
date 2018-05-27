@@ -32,7 +32,7 @@ export default class App extends Component {
 
   render() {
     return (
-      <div class="container">
+      <div className="container">
         { !isUserSignedIn() ?
           <Signin handleSignIn={ this.handleSignIn } />
           : <div>

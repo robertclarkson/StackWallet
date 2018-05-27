@@ -15,10 +15,10 @@ var bip32 = require('bip32')
 const cointypes = require('bip44-constants')
 var dhttp = require('dhttp/200')
 
-export default class Testnet extends Bitcoin {
+export default class Litecoin extends Bitcoin {
 
 	getClassName() {
-		return 'Testnet'
+		return 'Litecoin'
 	}
 
 	getAddress (node) {
@@ -27,14 +27,14 @@ export default class Testnet extends Bitcoin {
 
 		return baddress.toBase58Check(
 			bcrypto.hash160(node.publicKey), 
-			bitcoin.networks.testnet.pubKeyHash
+			bitcoin.networks.litecoin.pubKeyHash
 		)
 	}
 
 	getTransactions(address) {
 		dhttp({
 		  method: 'GET',
-		  url: 'https://test-insight.bitpay.com/api/addr/'+address,
+		  url: 'https://insight.litecore.io/api/addr/'+address,
 		  // url: 'https://insight.bitpay.com/api/addr/'+address,
 		  /*body: {
 		    addrs: [address],

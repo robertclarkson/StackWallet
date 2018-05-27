@@ -11,7 +11,9 @@ import {
 let bitcoin = require('bitcoinjs-lib')
 var bip39 = require('bip39')
 var bip32 = require('bip32')
+const cointypes = require('bip44-constants')
 
+var dhttp = require('dhttp/200')
 const avatarFallbackImage = 'https://s3.amazonaws.com/onename/avatar-placeholder.png';
 
 export default class Profile extends Component {
@@ -29,7 +31,8 @@ export default class Profile extends Component {
   	  },
       username: "",
       mnemonic:"",
-      address:""
+      address:"",
+      addresses:[]
   	};
   }
 
@@ -38,13 +41,14 @@ export default class Profile extends Component {
     const { person } = this.state;
     const { username } = this.state;
     const { address } = this.state;
+    const { addresses } = this.state;
     const { created_at } = this.state;
     const { mnemonic } = this.state;
     return (
       !isSignInPending() ?
       <div className="container">
-        <div className="row">
-          <div className="col-md-offset-3 col-md-6">
+        <div className="row justify-content-center">
+          <div className="col-md-6 jumbotron">
             <div className="col-md-12">
               <div className="avatar-section">
                 <img
@@ -72,64 +76,43 @@ export default class Profile extends Component {
               </div>
             </div>
           </div>
-          <div className="bitcoin">
-            <div className="col-md-offset-3 col-md-6">
-              {this.state.isLoading && <h1>Loading...</h1>}
-              {!this.state.isLoading &&
-                <div className="bitcoin">
-                  <h3>Bitcoin</h3>
-                  <table className="table">
-                    <tbody>
-                      <tr><th>Mnemonic:</th><td>{mnemonic}</td></tr>
-                      <tr><th>Address:</th><td>{address}</td></tr>
-                      <tr><th>Created:</th><td>{created_at}</td></tr>
-                    </tbody>
-                  </table>
-                  <button 
-                    className="btn btn-danger" 
-                    onClick={e => this.handleDelete(e)}
-                  >
-                    Delete
-                  </button>
-
-                  <button 
-                    className="btn btn-info" 
-                    onClick={e => this.handleAdd(e)}
-                  >
-                    Add Crypto
-                  </button>
-                </div>
-              }
-            </div>
-          </div>
         </div>
       </div> : null
     );
   }
 
+  getCoinIndex(tla = 'BTC') {
+    return (cointypes[tla] - cointypes['BTC'])
+  }
+
   getAddress (node) {
     var baddress = bitcoin.address
     var bcrypto = bitcoin.crypto
-    return baddress.toBase58Check(bcrypto.hash160(node.publicKey), bitcoin.networks.bitcoin.pubKeyHash)
+
+    return baddress.toBase58Check(
+      bcrypto.hash160(node.publicKey), 
+      bitcoin.networks.testnet.pubKeyHash
+    )
+  }
+
+  getTransactions(address) {
+    dhttp({
+      method: 'GET',
+      url: 'https://test-insight.bitpay.com/api/addr/'+address,
+      // url: 'https://insight.bitpay.com/api/addr/'+address,
+      /*body: {
+        addrs: [address],
+        height: 0
+      }*/
+    }, function (err, transactions) {
+      if (err) console.log(err)
+
+      console.log(transactions)
+    })
   }
 
   fetchData(){
     this.setState({isLoading:true})
-
-    const constants = require('bip44-constants')
-    console.log(constants)
-     
-    // // iterate through constants
-    // Object.keys(constants).forEach(coin => {
-    //   const constant = constants[coin]
-     
-    //   // ...
-    //   console.log(coin, constant)
-    // })
-     
-    // console.log(constants['Litecoin'])
-
-
     getFile('btc.json')
       .then((file) => {
         if(file != null) {
@@ -145,10 +128,23 @@ export default class Profile extends Component {
             var mnemonic = btc.mnemonic
             var seed = bip39.mnemonicToSeed(mnemonic)
             var rootkey = bip32.fromSeed(seed)
-            var address = this.getAddress(rootkey.derivePath("m/0'/0/0"))
+            var address = this.getAddress(rootkey.derivePath("m/44'/1'/0'/0/0"))
+            
+            this.getTransactions(address);
+
+            //m / purpose' / coin_type' / account' / change / address_index
+            //m/44'/0'/0'/0/0
+            var addresses = [
+              this.getAddress(rootkey.derivePath("m/44'/0'/0'/0/0")),
+              this.getAddress(rootkey.derivePath("m/44'/1'/0'/0/0")),
+              this.getAddress(rootkey.derivePath("m/44'/2'/0'/0/0")),
+              this.getAddress(rootkey.derivePath("m/44'/3'/0'/0/0")),
+            ]
+            
             this.setState({
               mnemonic:btc.mnemonic,
               address:address,
+              addresses:addresses,
               created_at:new Date(btc.created_at).toString()
             })
           }
@@ -163,52 +159,15 @@ export default class Profile extends Component {
         // console.log(address);
       })
       .catch((e) => {
+        console.log('Error getting bitcoin private key')
         console.log(e);
-          console.log('Error getting bitcoin private key')
       })
       .finally(() => {
         this.setState({isLoading:false})
       })
   }
 
-  makeBitcoinFile() {
-    console.log('no bitcoin saved file, creating new one')
-    // var testnet = bitcoin.networks.testnet
-    // var keyPair = bitcoin.ECPair.makeRandom({ network: testnet});
-    // var wif = keyPair.toWIF();
-    // var address = keyPair.getAddress()
-
-    var mnemonic = bip39.generateMnemonic()
-    var seed = bip39.mnemonicToSeed(mnemonic)
-    var rootkey = bip32.fromSeed(seed)
-    var address = this.getAddress(rootkey.derivePath("m/0'/0/0"))
-    let btc = {
-      mnemonic: mnemonic,
-      created_at: Date.now()
-    }
-    putFile('btc.json', JSON.stringify(btc))
-      .then(() => {
-        this.setState({
-          mnemonic:mnemonic,
-          address:address,
-          created_at:new Date(btc.created_at).toString()
-        })
-      })
-  }
-
-  handleDelete() {
-    putFile('btc.json', JSON.stringify([]))
-      .finally(() => {
-        this.setState({isLoading:false})
-        this.fetchData();
-      })
-  }
-
-  handleAdd() {
-    this.setState({
-
-    });
-  }
+  
 
   componentDidMount() {
     this.fetchData();
