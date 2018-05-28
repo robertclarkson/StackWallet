@@ -12,6 +12,9 @@ import Settings from './components/Settings.jsx';
 
 // Require Sass file so webpack can build it
 import bootstrap from 'bootstrap/dist/css/bootstrap.css';
+import jquery from 'jquery';
+
+import 'bootstrap'
 import style from './styles/style.css';
 
 import { BrowserRouter, Router, Route, NavLink, Link, Switch } from 'react-router-dom';

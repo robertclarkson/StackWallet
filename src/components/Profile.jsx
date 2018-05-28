@@ -53,7 +53,7 @@ export default class Profile extends Component {
               <div className="avatar-section">
                 <img
                   src={ person.avatarUrl() ? person.avatarUrl() : avatarFallbackImage }
-                  className="img-rounded avatar"
+                  className="img-fluid avatar"
                   id="avatar-image"
                 />
                 <div className="username">
