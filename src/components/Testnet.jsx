@@ -49,4 +49,22 @@ export default class Testnet extends Bitcoin {
 	      // console.log(transactions)
 	    })
 	}
+
+	getTxs(address, component) {
+	    dhttp({
+	      method: 'GET',
+	      url: 'https://test-insight.bitpay.com/api/addr/'+address+'/utxo',
+	      // url: 'https://insight.bitpay.com/api/addr/'+address,
+	      /*body: {
+	        addrs: [address],
+	        height: 0
+	      }*/
+	    }, function (err, transactions) {
+	      if (err) console.log(err)
+	        component.setState({
+	          txs: transactions,
+	        });
+	      // console.log(transactions)
+	    })
+	}
 }
